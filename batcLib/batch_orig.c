@@ -3,6 +3,7 @@
 #include<stdlib.h>
 #include<inttypes.h>
 #include<stdint.h>
+#include<string.h>
 #include<sys/ioctl.h>
 #include<fcntl.h>
 #include<errno.h>
@@ -96,11 +97,15 @@ return 0;
 // Adds multiple read operations to the batch, each to be run on
 // a different cpu.  Returns the index of the first op or -1 on error.
 // Duplicate this for write ops.
+
+
+int fd, rc;
+
 int add_readops_to_batch(struct msr_batch_array *batch, __u16 firstcpu, __u16 lastcpu, __u32 msr){
     int i;
     //make an if statement that nakes sure tha firstcpu < lastcpu
     if(firstcpu > lastcpu){	 
-	 printf("arg should be in form (first cpu, last cpu | first cpu < last cpu.");
+	 printf(" first cpu should be < last cpu.");
 	 exit(-1);
     }
     
@@ -115,21 +120,17 @@ int add_readops_to_batch(struct msr_batch_array *batch, __u16 firstcpu, __u16 la
         batch->ops[i].msr = msr;
         batch->ops[i].msrdata = 0;
         batch->ops[i].wmask = 0;
-
-    	printf("MSR Add: %" PRIx32 " MSR value: %llu"  " CPU core: %" PRIu16 "\n",
-    		batch->ops[i].msr,
-        	batch->ops[i].msrdata,
-        	batch->ops[i].cpu);
-    	}
-
-	if(batch->ops[i].err != 0){
-		perror("Error");
-		printf("Errno: %d \n", batch->ops[i].err);
-		exit(-1);
-	}
-    
+	
+#if DEBUG
+printf("MSR Add: %" PRIx32 " MSR value: %llu"  " CPU core: %" PRIu16 "\n",
+	batch->ops[i].msr,
+        batch->ops[i].msrdata,
+        batch->ops[i].cpu);
+    	
+#endif
+    }
 	if(batch->ops[i].err == -13){
-		perror("MSR permission error check msr_approved_list to make sure MSR is readable");
+		perror("MSR permission error check msr_approved_list to make sure MSR exists and is readable");
 		exit(-1);
 	}
     return 0;
@@ -156,11 +157,46 @@ int add_writeop_to_batch(struct msr_batch_array *batch, __u16 cpu, __u32 msr, __
         return 0;
 }*/
 
+
+int check_msr(struct msr_batch_array *batch, char *str){
+	FILE *fp;
+	char msradd[30];
+	int line = 1;
+	int find_res = 0;
+
+	fp = fopen("/dev/cpu/msr_approved_list", "r");
+
+	if(fp == NULL){
+		printf("File could not be opened check that you have read permissions and that the file exists");
+		exit(-1);
+	}
+
+	while(fgets(msradd, 30, fp) != NULL){
+		if((strstr(msradd, str)) != NULL){
+			printf("MSR found on line %d\n", line);
+			printf("%s\n", msradd);
+			find_res++;
+		}
+		line++;
+	}
+
+	if(find_res == 0){
+		printf("MSR not found \n");
+	}
+
+	if(fp){
+		fclose(fp);
+	}
+
+	return 0;
+
+}
+
 int add_writeops_to_batch(struct msr_batch_array *batch, __u16 first_cpu, __u16 last_cpu, __u32 msr, __u64 writemask){
 	int i;
-
+	
 	if(first_cpu >= last_cpu){
-		printf("arg should be in form (first cpu, last cpu | first cpu < last cpu");
+		printf("in (firstcpu, lastcpu) first cpu should be < last cpu");
 		exit(-1);
 	}
 
@@ -168,6 +204,7 @@ int add_writeops_to_batch(struct msr_batch_array *batch, __u16 first_cpu, __u16 
 	batch->ops = realloc( batch->ops, sizeof(struct msr_batch_op) * batch->numops );
 
 	for(i = first_cpu; i <= last_cpu; i++){
+	
 		batch->ops[i].cpu = i;
         	batch->ops[i].isrdmsr = 1; //note for monday (7/13) ask Barry how to write a function that reads msr_approved and checks whether the msr is read/writable 
         	batch->ops[i].err = 0;
@@ -180,12 +217,7 @@ int add_writeops_to_batch(struct msr_batch_array *batch, __u16 first_cpu, __u16 
         		batch->ops[i].msrdata,
         		batch->ops[i].cpu);
     	}
-
-	if(batch->ops[i].err != 0){
-		perror("Error");
-		printf("Errno: %d \n", batch->ops[i].err);
-		exit(-1);
-    	}
+	
 	if(batch->ops[i].err == -13){
 		perror("MSR permission error check msr_approved_list to make sure MSR is writable");
 		exit(-1);
@@ -196,25 +228,23 @@ int add_writeops_to_batch(struct msr_batch_array *batch, __u16 first_cpu, __u16 
 }
 
 // Print an indivdiual op via the msr_batch_op pointer.
-// DO THIS FIRST.
-// 
 int print_op( struct msr_batch_op *op ){
-    printf("cpu: %" PRIu16 "  isrdmsr: %" PRIu16  " err: %" PRId32 "  msraddr: %" PRIx32 "  msrdata: %" PRIu64  "   wmask: %" PRIx64 " \n", 
-    (uint16_t)op->cpu,
-    (uint16_t)op->isrdmsr,
-    (int32_t)op->err,
-    (uint32_t)op->msr,
-    (uint64_t)op->msrdata,
-    (uint64_t)op->wmask);
+	
+	printf("cpu: %" PRIu16 "  isrdmsr: %" PRIu16  " err: %" PRId32 "  msraddr: %" PRIx32 "  msrdata: %" PRIu64  "   wmask: %" PRIx64 " \n", 
+		(uint16_t)op->cpu,
+		(uint16_t)op->isrdmsr,
+		(int32_t)op->err,
+		(uint32_t)op->msr,
+		(uint64_t)op->msrdata,
+		(uint64_t)op->wmask);
 
-    return 0;
+	return 0;
 }
 
 // Print a full batch by the msr_batch_array pointer
-// DO THIS SECOND.
+//This function prints the number of operations in msr_batch_array.numops
+//and then prints each of the ops contains in msr_batch_array.ops.
 int print_batch( struct msr_batch_array *batch ){
-    //This function prints the number of operations in msr_batch_array.numops
-    //and then prints each of the ops contains in msr_batch_array.ops.
 	int i;
 	printf("numops: %" PRIu32 "\n", (uint32_t)batch->numops);
 	printf("operations in batch " PRIu32 "\n");
@@ -236,21 +266,42 @@ int print_error_ops( struct msr_batch_array *batch ){
 // Actually run the batch.
 */
 int run_batch( struct msr_batch_array *batch ){
-    int fd, rc;
-    fd = open("/dev/cpu/msr_batch", O_RDWR);
-    printf("%s::%d fd = %d\n",__FILE__, __LINE__, fd);
+	int i;	
+	fd = open("/dev/cpu/msr_batch", O_RDWR);
    
-    if(fd == -1){
-	perror("error!");
-    	exit(-1);
-    }
+	if(fd == -1){
+		perror("err cannot access directory make sure permissions are set!");
+    		exit(-1);
+	}
+	
+	if(fd == -13){
+		perror("error file or directory may not exist or be accessible");
+		exit(-1);
+		
+	}
+#if DEBUG
+	for(i=0; i < batch->numops; i++){
+        	print_op(&(batch->ops[i]));
 
-    rc = ioctl(fd, X86_IOC_MSR_BATCH, batch);
+    	}
+#endif
+	rc = ioctl(fd, X86_IOC_MSR_BATCH, batch);
 
-    if(rc < 0){
-	rc = rc * -1;
-	perror("ioctl failed");
-	fprintf(stderr, "%s::%d rc=%d\n", __FILE__, __LINE__, rc);
+#if DEBUG
+	for(i=0; i < batch->numops; i++){
+        	print_op(&(batch->ops[i]));
+
+    	}
+#endif
+	if(rc == -13){
+		perror("ioctl failed");
+		fprintf(stderr,"%s::%d rc=%d \n Check that msr_safe kernel module is loaded and that the MSR exists", __FILE__, __LINE__, rc);
+	}	
+       	
+	if(rc < 0){
+		rc = rc * -1;
+		perror("ioctl failed");
+		fprintf(stderr, "%s::%d rc=%d\n", __FILE__, __LINE__, rc);
 
 	exit(-1);
    } 
@@ -263,9 +314,10 @@ int main(){
 	my_batch.numops = 0;
 	my_batch.ops = NULL;
 
+	check_msr("0x000000E7");
 	//add_readops_to_batch( &my_batch, 0, 0x7e );
-	add_writeops_to_batch(&my_batch, 0, 8, 0x611, 0xFFFFFFFF);
-	add_readops_to_batch( &my_batch, 0, 8, 0x611 );
+	add_writeops_to_batch(&my_batch, 0, 8, 0xe7, 0xFFFFFFFF);
+	add_readops_to_batch( &my_batch, 0, 8, 0xe7);
 	run_batch(&my_batch);
 	/*
 	struct msr_batch_op op[3];
@@ -276,7 +328,6 @@ int main(){
 	op[0].msr=0x611;
 	op[0].msrdata=0;
 	op[0].wmask=0;
-
 	op[1].cpu=18;
 	op[1].isrdmsr=1;
 	op[1].err=38;

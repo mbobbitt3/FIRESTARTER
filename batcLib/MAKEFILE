@@ -1,0 +1,15 @@
+#make file for batch lib.
+CC = GCC
+
+
+#compiler flags
+CFLAGS = -g -Wall
+
+
+#target exec
+TARGET = batch_orig
+
+all: $(TARGET)
+
+$(TARGET): $(TARGET).c
+	$(CC) $(CFLAGS)-o $(TARGET) $(TARGET).c 
