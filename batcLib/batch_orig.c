@@ -7,6 +7,9 @@
 #include<sys/ioctl.h>
 #include<fcntl.h>
 #include<errno.h>
+#include<assert.h>
+#include<stdlib.h>
+#include<stdbool.h>
 #define max_ops (10000)
 /* This is what is included from msr_safe.h.
  * Included here for reference.
@@ -101,6 +104,13 @@ return 0;
 
 int fd, rc;
 
+struct msr{
+	uint32_t address;
+    	uint64_t writemask;
+};
+static struct msr *msr_list = NULL;
+static uint32_t msr_count;
+#define MSR_BUF_SIZE (1023)
 int add_readops_to_batch(struct msr_batch_array *batch, __u16 firstcpu, __u16 lastcpu, __u32 msr){
     int i;
     //make an if statement that nakes sure tha firstcpu < lastcpu
@@ -121,18 +131,18 @@ int add_readops_to_batch(struct msr_batch_array *batch, __u16 firstcpu, __u16 la
         batch->ops[i].msrdata = 0;
         batch->ops[i].wmask = 0;
 	
-#if DEBUG
 printf("MSR Add: %" PRIx32 " MSR value: %llu"  " CPU core: %" PRIu16 "\n",
 	batch->ops[i].msr,
         batch->ops[i].msrdata,
         batch->ops[i].cpu);
     	
-#endif
     }
+#if DEBUG
 	if(batch->ops[i].err == -13){
 		perror("MSR permission error check msr_approved_list to make sure MSR exists and is readable");
 		exit(-1);
 	}
+#endif
     return 0;
 
 }
@@ -158,12 +168,10 @@ int add_writeop_to_batch(struct msr_batch_array *batch, __u16 cpu, __u32 msr, __
 }*/
 
 
-int check_msr(struct msr_batch_array *batch, char *str){
+void check_msr(){
 	FILE *fp;
-	char msradd[30];
-	int line = 1;
-	int find_res = 0;
-
+	int rc;
+	char buf[MSR_BUF_SIZE];
 	fp = fopen("/dev/cpu/msr_approved_list", "r");
 
 	if(fp == NULL){
@@ -171,25 +179,59 @@ int check_msr(struct msr_batch_array *batch, char *str){
 		exit(-1);
 	}
 
-	while(fgets(msradd, 30, fp) != NULL){
-		if((strstr(msradd, str)) != NULL){
-			printf("MSR found on line %d\n", line);
-			printf("%s\n", msradd);
-			find_res++;
+	while(fgets(buf, MSR_BUF_SIZE, fp) != NULL){
+		if(buf[0] == '#'){
+			continue;
 		}
-		line++;
+		msr_list = realloc( msr_list, sizeof( struct msr ) * ++msr_count );
+        	rc = sscanf( buf, "0x%" PRIx32 " 0x%" PRIx64 "\n", &(msr_list[msr_count-1].address), &(msr_list[msr_count-1].writemask) );
+        	if(rc < 2){
+            		fprintf( stderr, "Ooops, don't know how to parse '%s'.\n", buf );
+            		exit(-1);
+     		}
 	}
 
-	if(find_res == 0){
-		printf("MSR not found \n");
+	if(msr_count == 0){
+		fprintf(stderr, "msr_approved is readable but empty %s \n", buf);
+		exit(-1);
 	}
 
-	if(fp){
-		fclose(fp);
+	assert(EOF != fclose(fp));	
+
+}
+
+void print_approved_list(){
+	int i;
+	assert( msr_list );
+
+	for( i=0; i<msr_count; i++ ){
+        	fprintf( stdout, "0x%08" PRIx32 " 0x%016" PRIx64 "\n", msr_list[i].address, msr_list[i].writemask );
 	}
+}
 
-	return 0;
+bool msr_read_check(uint32_t address){
+	for( int i=0; i<msr_count; i++ ){
+        	if( address == msr_list[i].address ){
+         		return true;
+        	}
+    	}
 
+	return false;
+}
+
+bool msr_write_check(uint32_t address, uint64_t value){
+	for( int i=0; i<msr_count; i++ ){
+        	if( address == msr_list[i].address ){
+        		if( (msr_list[i].writemask | value ) == msr_list[i].writemask ){
+               			 return true;
+           		}
+			
+			else{
+                		return false;
+           		}
+      		}
+	}
+    return false;
 }
 
 int add_writeops_to_batch(struct msr_batch_array *batch, __u16 first_cpu, __u16 last_cpu, __u32 msr, __u64 writemask){
@@ -206,7 +248,7 @@ int add_writeops_to_batch(struct msr_batch_array *batch, __u16 first_cpu, __u16 
 	for(i = first_cpu; i <= last_cpu; i++){
 	
 		batch->ops[i].cpu = i;
-        	batch->ops[i].isrdmsr = 1; //note for monday (7/13) ask Barry how to write a function that reads msr_approved and checks whether the msr is read/writable 
+        	batch->ops[i].isrdmsr = 1; 
         	batch->ops[i].err = 0;
         	batch->ops[i].msr = msr;
         	batch->ops[i].msrdata = 0;
@@ -313,11 +355,11 @@ int main(){
 	struct msr_batch_array my_batch;
 	my_batch.numops = 0;
 	my_batch.ops = NULL;
-
-	check_msr("0x000000E7");
-	//add_readops_to_batch( &my_batch, 0, 0x7e );
-	add_writeops_to_batch(&my_batch, 0, 8, 0xe7, 0xFFFFFFFF);
-	add_readops_to_batch( &my_batch, 0, 8, 0xe7);
+	check_msr();
+	fprintf( stdout, "Is msr 0xE8 readable?  %s\n", msr_read_check( 0xE8 ) ? "true!" : "false!" );
+	fprintf( stdout, "Can 0xfff be written to 0xE8?  %s\n", msr_write_check( 0xE8, 0xFFF ) ? "true!" : "false!" );
+	fprintf( stdout, "Can 0xfff be written to 0x186?  %s\n", msr_write_check( 0x186, 0xFFF ) ? "true!" : "false!" );
+	add_readops_to_batch( &my_batch, 0, 8, 0x611);
 	run_batch(&my_batch);
 	/*
 	struct msr_batch_op op[3];
