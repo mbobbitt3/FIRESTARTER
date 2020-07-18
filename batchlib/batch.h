@@ -1,17 +1,10 @@
 #ifndef batchlib_h__
 #define batchlib_h__
+
 #include "msr_safe.h"
-#include<stdio.h>
-#include<stdlib.h>
 #include<inttypes.h>
-#include<stdint.h>
-#include<string.h>
-#include<sys/ioctl.h>
-#include<fcntl.h>
-#include<errno.h>
-#include<assert.h>
-#include<stdlib.h>
 #include<stdbool.h>
+
 extern int add_readops_to_batch(struct msr_batch_array *batch, __u16 firstcpu, __u16 lastcpu, __u32 msr);
 extern int add_writeop_to_batch(struct msr_batch_array *batch, __u16 cpu, __u32 msr, __u64 writemask);
 extern void check_msr();
