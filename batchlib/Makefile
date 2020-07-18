@@ -1,11 +1,11 @@
 BATCHLIB_DIR=${HOME}/matt/FIRESTARTER/batchlib
 
 main: batch
-	gcc -Wall -std=c99 -L/${BATCHLIB_DIR}/batch -Wl,-rpath=${BATCHLIB_DIR}/  main.c -lbatch
+	gcc -Wall -std=c99 -L${BATCHLIB_DIR} -Wl,-rpath=${BATCHLIB_DIR}  main.c -lbatch
 
 batch:
 	gcc -Wall -fPIC -std=c99 -g -c batch.c
-	ld -shared batch.o -o batch.so
+	ld -shared batch.o -o libbatch.so
 
 clean:
 	rm -rf a.out batch.o batch.so
