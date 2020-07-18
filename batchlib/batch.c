@@ -99,7 +99,6 @@ bool msr_read_check(uint32_t address){
          		return true;
         	}
     	}
-
 	return false;
 }
 
