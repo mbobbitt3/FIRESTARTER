@@ -1,11 +1,11 @@
-#make file for batch lib.
-#$(CC) $(CFLAGS)-o $(TARGET) $(TARGET).c 
+BATCHLIB_DIR=${HOME}/matt/FIRESTARTER/batchlib
 
-main:
-	gcc -Wall -std=c99 -L/home/bobbitt5/FIRESTARTER/batchlib -Wl,-rpath=/home/bobbitt5/FIRESTARTER/batchlib/  main.c -lbatchlib
+main: batch
+	gcc -Wall -std=c99 -L${BATCHLIB_DIR} -Wl,-rpath=${BATCHLIB_DIR}  main.c -lbatch
 
-batchlib:
-	gcc -Wall -fPIC -c -std=c99 -g batch_orig.c -o batchlib.o
-	ld -shared batchlib.o -o batchlib.so
+batch:
+	gcc -Wall -fPIC -std=c99 -g -c batch.c
+	ld -shared batch.o -o libbatch.so
+
 clean:
-	rm -rf a.out batchlib.o batchlib.so 
+	rm -rf a.out batch.o batch.so
