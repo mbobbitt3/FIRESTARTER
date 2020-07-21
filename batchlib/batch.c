@@ -39,10 +39,6 @@ int add_readops_to_batch(struct msr_batch_array *batch, __u16 firstcpu, __u16 la
             batch->ops[i].msrdata = 0;
             batch->ops[i].wmask = 0;
 
-        printf("MSR Add: %" PRIx32 " MSR value: %llu"  " CPU core: %" PRIu16 "\n",
-            batch->ops[i].msr,
-            batch->ops[i].msrdata,
-            batch->ops[i].cpu);
     }
 #if DEBUG
 	if(batch->ops[i].err == -13){
@@ -163,7 +159,7 @@ int print_op( struct msr_batch_op *op ){
 	return 0;
 }
 #if DEBUG
-static int print_batch( struct msr_batch_array *batch ){
+extern int print_batch( struct msr_batch_array *batch ){
 	int i;
 	printf("numops: %" PRIu32 "\n", (uint32_t)batch->numops);
 	printf("operations in batch " PRIu32 "\n");
