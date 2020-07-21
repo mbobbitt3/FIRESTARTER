@@ -162,7 +162,7 @@ int print_op( struct msr_batch_op *op ){
 
 	return 0;
 }
-
+#if DEBUG
 static int print_batch( struct msr_batch_array *batch ){
 	int i;
 	printf("numops: %" PRIu32 "\n", (uint32_t)batch->numops);
@@ -174,7 +174,7 @@ static int print_batch( struct msr_batch_array *batch ){
 
 	return 0;
 }
-
+#endif
 int run_batch( struct msr_batch_array *batch ){
 	fd = open("/dev/cpu/msr_batch", O_RDWR);
 
