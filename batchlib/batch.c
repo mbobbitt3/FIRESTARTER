@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #define max_ops (10000)
 
-int fd, rc;
+int fd, rc, init;
 
 struct msr{
     uint32_t address;
@@ -91,6 +91,10 @@ void print_approved_list(){
 }
 
 bool msr_read_check(uint32_t address){
+	if(!init){
+		init_msr_list();
+		init = 1;
+	}	
 	for( int i=0; i<msr_count; i++ ){
         	if( address == msr_list[i].address ){
          		return true;
@@ -100,6 +104,11 @@ bool msr_read_check(uint32_t address){
 }
 
 bool msr_write_check(uint32_t address, uint64_t value){
+
+	if(!init){
+		init_msr_list();
+		init = 1;
+	}	
 	for( int i=0; i<msr_count; i++ ){
         if( address == msr_list[i].address ){
             if( (msr_list[i].writemask | value ) == msr_list[i].writemask ){
