@@ -1,4 +1,4 @@
-BATCHLIB_DIR=${HOME}/matt/FIRESTARTER/batchlib
+BATCHLIB_DIR=${HOME}/FIRESTARTER/batchlib
 
 main: batch
 	gcc -Wall -std=c99 -L${BATCHLIB_DIR} -Wl,-rpath=${BATCHLIB_DIR}  main.c -lbatch

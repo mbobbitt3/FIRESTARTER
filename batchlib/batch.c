@@ -53,7 +53,7 @@ int add_readops_to_batch(struct msr_batch_array *batch, __u16 firstcpu, __u16 la
     return 0;
 }
 
-void check_msr(){
+void init_msr_list(){
 	FILE *fp;
 	int rc;
 	char buf[MSR_BUF_SIZE];
@@ -69,12 +69,12 @@ void check_msr(){
 			continue;
 		}
 		msr_list = realloc( msr_list, sizeof( struct msr ) * ++msr_count );
-        rc = sscanf( buf, "0x%" PRIx32 " 0x%" PRIx64 "\n", &(msr_list[msr_count-1].address), &(msr_list[msr_count-1].writemask) );
-        if(rc < 2){
-            fprintf( stderr, "Ooops, don't know how to parse '%s'.\n", buf );
-            exit(-1);
-        }
-    }
+       		rc = sscanf( buf, "0x%" PRIx32 " 0x%" PRIx64 "\n", &(msr_list[msr_count-1].address), &(msr_list[msr_count-1].writemask) );
+        	if(rc < 2){
+           		fprintf( stderr, "Ooops, don't know how to parse '%s'.\n", buf );
+            		exit(-1);
+        	}
+    	}
 
 	if(msr_count == 0){
 		fprintf(stderr, "msr_approved is readable but empty %s \n", buf);
@@ -86,8 +86,9 @@ void check_msr(){
 
 void print_approved_list(){
 	int i;
-	assert( msr_list );
-
+	free(msr_list);
+	msr_list = NULL;
+	init_msr_list();
 	for( i=0; i<msr_count; i++ ){
         	fprintf( stdout, "0x%08" PRIx32 " 0x%016" PRIx64 "\n", msr_list[i].address, msr_list[i].writemask );
 	}
@@ -162,7 +163,7 @@ int print_op( struct msr_batch_op *op ){
 	return 0;
 }
 
-int print_batch( struct msr_batch_array *batch ){
+static int print_batch( struct msr_batch_array *batch ){
 	int i;
 	printf("numops: %" PRIu32 "\n", (uint32_t)batch->numops);
 	printf("operations in batch " PRIu32 "\n");
@@ -199,12 +200,12 @@ int run_batch( struct msr_batch_array *batch ){
 #endif
 	if(rc == -13){
 		perror("ioctl failed");
-		fprintf(stderr,"%s::%d rc=%d \n Check that msr_safe kernel module is loaded and that the MSR exists", __FILE__, __LINE__, rc);
+		fprintf(stderr,"%s::%d rc=%d \n Check that msr_safe kernel module is loaded and that the approved list is populated", __FILE__, __LINE__, rc);
 	}
 
 	if(rc < 0){
 		rc = rc * -1;
-		perror("ioctl failed");
+		printf("ioctl failed, check that the MSR exists, and is read/writable \n");
 		fprintf(stderr, "%s::%d rc=%d\n", __FILE__, __LINE__, rc);
         exit(-1);
     }

@@ -9,7 +9,7 @@ extern int add_readops_to_batch(struct msr_batch_array *batch, __u16 firstcpu, _
 extern int add_writeops_to_batch(struct msr_batch_array *batch, __u16 first_cpu,__u16 last_cpu, __u32 msr, __u64 writemask);
 extern int add_writeop_to_batch(struct msr_batch_array *batch, __u16 cpu, __u32 msr, __u64 writemask);
 
-extern void check_msr();
+extern void init_msr_list();
 extern void print_approved_list();
 extern bool msr_read_check(uint32_t address);
 extern bool msr_write_check (uint32_t address, uint64_t value);
