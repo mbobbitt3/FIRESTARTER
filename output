@@ -1,0 +1,75 @@
+numops: 1
+operations in batch u
+cpu: 1  isrdmsr: 1 err: 0  msraddr: e7  msrdata: 0   wmask: 0 
+FIRESTARTER - A Processor Stress Test Utility, Version 1.7 4 (github), build: 2020-07-23
+Copyright (C) 2019 TU Dresden, Center for Information Services and High Performance Computing
+This program comes with ABSOLUTELY NO WARRANTY; for details run `FIRESTARTER -w'.
+This is free software, and you are welcome to redistribute it
+under certain conditions; run `FIRESTARTER -c' for details.
+
+  system summary:
+    number of processors: 2
+    number of cores per package: 8
+    number of threads per core: 2
+    total number of threads: 32
+
+  processor characteristics:
+    architecture:   x86_64
+    vendor:         GenuineIntel
+    processor-name: Intel(R) Xeon(R) CPU E5-2667 v3 @ 3.20GHz
+    model:          Family 6, Model 63, Stepping 2
+    frequency:      3192 MHz
+    supported features:
+      - X86_64 FPU MMX SSE SSE2 SSE3 SSSE3 SSE4.1 SSE4.2 POPCNT AVX AVX2 FMA AES SMT    
+    Caches:
+      - Level 1 Data Cache, 32 KiB, 8-way set associative, shared among 2 threads
+      - Level 1 Instruction Cache, 32 KiB, 8-way set associative, shared among 2 threads
+      - Unified Level 2 Cache, 256 KiB, 8-way set associative, shared among 2 threads
+      - Unified Level 3 Cache, 20480 KiB, 20-way set associative, shared among 16 threads
+
+  Taking FMA path optimized for Haswell-EP - 2 thread(s) per core
+  Used buffersizes per thread:
+    - L1-Cache: 16384 Bytes
+    - L2-Cache: 131072 Bytes
+    - L3-Cache: 1310720 Bytes
+    - Memory: 52428800 Bytes
+
+  using 32 threads
+    - Thread 0 runs on CPU 0, core 0 in package: 0
+    - Thread 1 runs on CPU 1, core 1 in package: 0
+    - Thread 2 runs on CPU 2, core 2 in package: 0
+    - Thread 3 runs on CPU 3, core 3 in package: 0
+    - Thread 4 runs on CPU 4, core 4 in package: 0
+    - Thread 5 runs on CPU 5, core 5 in package: 0
+    - Thread 6 runs on CPU 6, core 6 in package: 0
+    - Thread 7 runs on CPU 7, core 7 in package: 0
+    - Thread 8 runs on CPU 8, core 0 in package: 1
+    - Thread 9 runs on CPU 9, core 1 in package: 1
+    - Thread 10 runs on CPU 10, core 2 in package: 1
+    - Thread 11 runs on CPU 11, core 3 in package: 1
+    - Thread 12 runs on CPU 12, core 4 in package: 1
+    - Thread 13 runs on CPU 13, core 5 in package: 1
+    - Thread 14 runs on CPU 14, core 6 in package: 1
+    - Thread 15 runs on CPU 15, core 7 in package: 1
+    - Thread 16 runs on CPU 16, core 0 in package: 0
+    - Thread 17 runs on CPU 17, core 1 in package: 0
+    - Thread 18 runs on CPU 18, core 2 in package: 0
+    - Thread 19 runs on CPU 19, core 3 in package: 0
+    - Thread 20 runs on CPU 20, core 4 in package: 0
+    - Thread 21 runs on CPU 21, core 5 in package: 0
+    - Thread 22 runs on CPU 22, core 6 in package: 0
+    - Thread 23 runs on CPU 23, core 7 in package: 0
+    - Thread 24 runs on CPU 24, core 0 in package: 1
+    - Thread 25 runs on CPU 25, core 1 in package: 1
+    - Thread 26 runs on CPU 26, core 2 in package: 1
+    - Thread 27 runs on CPU 27, core 3 in package: 1
+    - Thread 28 runs on CPU 28, core 4 in package: 1
+    - Thread 29 runs on CPU 29, core 5 in package: 1
+    - Thread 30 runs on CPU 30, core 6 in package: 1
+    - Thread 31 runs on CPU 31, core 7 in package: 1
+  The cores are numbered using the IDs from sysfs (see sys/devices/system/cpu/
+  cpu<no.>/topology/) or /proc/cpuinfo. These IDs do not have to be consecutive.
+
+cpu: 1  isrdmsr: 1 err: 0  msraddr: e7  msrdata: 0   wmask: 0 
+cpu: 1  isrdmsr: 1 err: 0  msraddr: e7  msrdata: 2168227042385   wmask: 0 
+ioctl failed, check that the MSR exists, and is read/writable 

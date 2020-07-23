@@ -25,7 +25,7 @@
  *
  * The user is responsible for freeing the ops pointer.
  */
-
+extern int add_readop(struct msr_batch_array *batch, __u32 msr);
 extern int add_readops(struct msr_batch_array *batch, __u16 firstcpu, __u16 lastcpu, __u32 msr);
 extern int add_writeops(struct msr_batch_array *batch, __u16 first_cpu,__u16 last_cpu, __u32 msr, __u64 writemask);
 

@@ -24,7 +24,20 @@ static bool msr_list_initialized = false;
 
 static uint32_t msr_count;
 #define MSR_BUF_SIZE (1023) // Maximum length of a msr_allowed_list entry.
+int add_readop(struct msr_batch_array *batch, __u32 msr){
+	
+    batch->numops = batch->numops+1;
+    batch->ops = realloc( batch->ops, sizeof(struct msr_batch_op) * batch->numops );
 
+    batch->ops[0].cpu = 1;
+    batch->ops[0].isrdmsr = 1;
+    batch->ops[0].err = 0;
+    batch->ops[0].msr = msr;
+    batch->ops[0].msrdata = 0;
+    batch->ops[0].wmask = 0;
+    
+    return 0;
+}
 int add_readops(struct msr_batch_array *batch, __u16 firstcpu, __u16 lastcpu, __u32 msr){
     int i;
     if(firstcpu > lastcpu){
@@ -200,6 +213,7 @@ int run_batch( struct msr_batch_array *batch ){
 		exit(-1);
 	}
 #if DEBUG
+	int i;
 	for(i=0; i < batch->numops; i++){
         	print_op(&(batch->ops[i]));
     	}

@@ -5,7 +5,7 @@ main: batch
 	#gcc -Wall -std=c99 -L${BATCHLIB_DIR} -Wl,-rpath=${BATCHLIB_DIR}  main.c -lbatch
 
 batch:
-	gcc -Wall -DDEBUG -fPIC -std=c99 -g -c batch.c
+	gcc -Wall -d DEBUG -fPIC -std=c99 -g -c batch.c
 	ld -shared batch.o -o libbatch.so
 	ar rcs libbatch.a batch.o
 
