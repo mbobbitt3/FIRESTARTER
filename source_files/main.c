@@ -33,9 +33,14 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <assert.h>
 #include "firestarter_global.h"
 #include "watchdog.h"
 #include "help.h"
+#include "batchlib/batch.h"
 
 /*
  * Header for local functions
@@ -428,6 +433,8 @@ int main(int argc, char *argv[])
 {
     int i,c;
     unsigned long long iterations=0;
+    struct msr_batch_array batch_start = { .numops=0, .ops=NULL };
+    struct msr_batch_array batch_stop  = { .numops=0, .ops=NULL };
 
 $CUDA     #ifdef CUDA
 $CUDA     gpustruct_t * structpointer=malloc(sizeof(gpustruct_t));
@@ -464,6 +471,12 @@ $CUDA         #endif
         {0,             0,                  0,  0 }
     };
 
+    assert( msr_read_check( 0xE7 ) );
+    assert( msr_read_check( 0xE8 ) );
+    add_readops( &batch_start, 0, 0, 0xE7 );
+    add_readops( &batch_start, 0, 0, 0xE8 );
+    add_readops( &batch_stop, 0, 0, 0xE7 );
+    add_readops( &batch_stop, 0, 0, 0xE8 );
     while(1)
     {
 $$ construct getopt_long command
@@ -608,20 +621,30 @@ $CUDA     #endif
     init();
 
     //start worker threads
+    run_batch( &batch_start );
     _work(mdp, &LOADVAR);
 
     //start watchdog
     watchdog_arg.pid = getpid();
-    
+
     watchdog_timer(&watchdog_arg);
 
     /* wait for threads after watchdog has requested termination */
     for(i = 0; i < mdp->num_threads; i++) pthread_join(threads[i], NULL);
+    run_batch( &batch_stop );
+
+    fprintf( stdout, "mperf start:  %" PRIu64 "\n", (uint64_t)(batch_start.ops[0].msrdata) );
+    fprintf( stdout, "mperf stop:   %" PRIu64 "\n", (uint64_t)(batch_stop.ops[0].msrdata) );
+    fprintf( stdout, "mperf delta:  %" PRIu64 "\n", (uint64_t)(batch_stop.ops[0].msrdata) -  (uint64_t)(batch_start.ops[0].msrdata) );
+
+    fprintf( stdout, "aperf start:  %" PRIu64 "\n", (uint64_t)(batch_start.ops[1].msrdata) );
+    fprintf( stdout, "aperf stop:   %" PRIu64 "\n", (uint64_t)(batch_stop.ops[1].msrdata) );
+    fprintf( stdout, "aperf delta:  %" PRIu64 "\n", (uint64_t)(batch_stop.ops[1].msrdata) -  (uint64_t)(batch_start.ops[1].msrdata) );
 
     if (verbose == 2){
        unsigned long long start_tsc,stop_tsc;
        double runtime;
-  
+
        printf("\nperformance report:\n\n");
 
        start_tsc=mdp->threaddata[0].start_tsc;
