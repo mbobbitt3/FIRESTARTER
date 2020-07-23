@@ -7,6 +7,7 @@ main: batch
 batch:
 	gcc -Wall -fPIC -std=c99 -g -c batch.c
 	ld -shared batch.o -o libbatch.so
+	ar rcs libbatch.a batch.o
 
 clean:
 	rm -rf a.out batch.o batch.so
