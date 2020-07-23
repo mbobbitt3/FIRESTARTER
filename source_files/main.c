@@ -36,6 +36,7 @@
 #include "firestarter_global.h"
 #include "watchdog.h"
 #include "help.h"
+#include "batchlib/batch.h"
 
 /*
  * Header for local functions

@@ -28,7 +28,7 @@ LINUX_CC?=gcc
 LINUX_C_FLAGS=-fomit-frame-pointer -Wall -std=gnu99 -I. -DAFFINITY
 OPT_STD=-O2
 OPT_ASM=-O0
-LINUX_L_FLAGS=-lpthread -lm
+LINUX_L_FLAGS=-L./batchlib -Wl,-rpath=./batchlib -lpthread -lm -lbatch
 LINUX_L_FLAGS_STATIC =
 $STATIC LINUX_L_FLAGS_STATIC = -static
 
