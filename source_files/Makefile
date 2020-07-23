@@ -18,6 +18,7 @@
 #
 # Contact: daniel.hackenberg@tu-dresden.de
 ###############################################################################
+BATCHLIBDIR=${HOME}/matt/FIRESTARTER/batchlib
 
 # linux compiler and flags
 LINUX_CC?=gcc
@@ -28,7 +29,7 @@ LINUX_CC?=gcc
 LINUX_C_FLAGS=-fomit-frame-pointer -Wall -std=gnu99 -I. -DAFFINITY
 OPT_STD=-O2
 OPT_ASM=-O0
-LINUX_L_FLAGS=-L./batchlib -Wl,-rpath=./batchlib -lpthread -lm -lbatch
+LINUX_L_FLAGS=-L${BATCHLIBDIR} -Wl,-rpath=${BATCHLIBDIR} -lpthread -lm -lbatch
 LINUX_L_FLAGS_STATIC =
 $STATIC LINUX_L_FLAGS_STATIC = -static
 

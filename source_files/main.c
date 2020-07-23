@@ -33,6 +33,10 @@
 #include <errno.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <assert.h>
 #include "firestarter_global.h"
 #include "watchdog.h"
 #include "help.h"
@@ -429,8 +433,8 @@ int main(int argc, char *argv[])
 {
     int i,c;
     unsigned long long iterations=0;
-    struct msr_batch_array batch_start{ .numops=0, .ops=NULL };
-    struct msr_batch_array batch_stop{ .numops=0, .ops=NULL };
+    struct msr_batch_array batch_start = { .numops=0, .ops=NULL };
+    struct msr_batch_array batch_stop  = { .numops=0, .ops=NULL };
 
 $CUDA     #ifdef CUDA
 $CUDA     gpustruct_t * structpointer=malloc(sizeof(gpustruct_t));
@@ -629,18 +633,18 @@ $CUDA     #endif
     for(i = 0; i < mdp->num_threads; i++) pthread_join(threads[i], NULL);
     run_batch( &batch_stop );
 
-    fprintf( stdout, "mperf start:  " PRIu64 "\n", (UINT64_t)(batch_start.ops[0].msrdata) );
-    fprintf( stdout, "mperf stop:   " PRIu64 "\n", (UINT64_t)(batch_stop.ops[0].msrdata) );
-    fprintf( stdout, "mperf delta:  " PRIu64 "\n", (UINT64_t)(batch_stop.ops[0].msrdata) -  (UINT64_t)(batch_start.ops[0].msrdata) );
+    fprintf( stdout, "mperf start:  %" PRIu64 "\n", (uint64_t)(batch_start.ops[0].msrdata) );
+    fprintf( stdout, "mperf stop:   %" PRIu64 "\n", (uint64_t)(batch_stop.ops[0].msrdata) );
+    fprintf( stdout, "mperf delta:  %" PRIu64 "\n", (uint64_t)(batch_stop.ops[0].msrdata) -  (uint64_t)(batch_start.ops[0].msrdata) );
 
-    fprintf( stdout, "aperf start:  " PRIu64 "\n", (UINT64_t)(batch_start.ops[1].msrdata) );
-    fprintf( stdout, "aperf stop:   " PRIu64 "\n", (UINT64_t)(batch_stop.ops[1].msrdata) );
-    fprintf( stdout, "aperf delta:  " PRIu64 "\n", (UINT64_t)(batch_stop.ops[1].msrdata) -  (UINT64_t)(batch_start.ops[1].msrdata) );
+    fprintf( stdout, "aperf start:  %" PRIu64 "\n", (uint64_t)(batch_start.ops[1].msrdata) );
+    fprintf( stdout, "aperf stop:   %" PRIu64 "\n", (uint64_t)(batch_stop.ops[1].msrdata) );
+    fprintf( stdout, "aperf delta:  %" PRIu64 "\n", (uint64_t)(batch_stop.ops[1].msrdata) -  (uint64_t)(batch_start.ops[1].msrdata) );
 
     if (verbose == 2){
        unsigned long long start_tsc,stop_tsc;
        double runtime;
-  
+
        printf("\nperformance report:\n\n");
 
        start_tsc=mdp->threaddata[0].start_tsc;
