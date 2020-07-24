@@ -1142,7 +1142,10 @@ int main(int argc, char *argv[])
 
     assert( msr_read_check( 0xE7 ) );
     assert( msr_read_check( 0xE8 ) );
-    add_readops( &batch_start, 0, 3, 0xE7 );
+    add_readops( &batch_start, 0, 1, 0xE7 );
+    add_readops(&batch_start, 0, 1, 0xE8);
+    add_readops(&batch_stop, 0, 1, 0xE7);
+    add_readops(&batch_stop, 0, 1, 0xE8);
     while(1)
     {
         #if (defined(linux) || defined(__linux__)) && defined (AFFINITY)
@@ -1299,7 +1302,7 @@ int main(int argc, char *argv[])
 
     /* wait for threads after watchdog has requested termination */
     for(i = 0; i < mdp->num_threads; i++) pthread_join(threads[i], NULL);
-	//irun_batch(&batch_stop);
+	run_batch(&batch_start);
     fprintf( stdout, "mperf start:  %" PRIu64 "\n", (uint64_t)(batch_start.ops[0].msrdata) );
 
 
@@ -1326,7 +1329,7 @@ int main(int argc, char *argv[])
        printf("\n* this estimate is highly unreliable if --function is used in order to select\n");
        printf("  a function that is not optimized for your architecture, or if FIRESTARTER is\n");
        printf("  executed on an unsupported architecture!\n");
-       run_batch( &batch_start );
+       run_batch( &batch_stop );
        printf("\n");
     }
 

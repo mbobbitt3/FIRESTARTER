@@ -39,20 +39,22 @@ int add_readop(struct msr_batch_array *batch, __u32 msr){
     return 0;
 }
 int add_readops(struct msr_batch_array *batch, __u16 firstcpu, __u16 lastcpu, __u32 msr){
-    int i;
+    int i, j;
+    uint32_t prev_numops = batch->numops;
+
     if(firstcpu > lastcpu){
         printf(" first cpu should be < last cpu.");
         exit(-1);
     }
     batch->numops = batch->numops+(lastcpu-firstcpu)+1;
     batch->ops = realloc( batch->ops, sizeof(struct msr_batch_op) * batch->numops );
-        for(i = firstcpu; i <= lastcpu; i++){
-            batch->ops[i].cpu = i;
-            batch->ops[i].isrdmsr = 1;
-            batch->ops[i].err = 0;
-            batch->ops[i].msr = msr;
-            batch->ops[i].msrdata = 0;
-            batch->ops[i].wmask = 0;
+        for(j = prev_numops, i = firstcpu; i <= lastcpu; j++, i++){
+            batch->ops[j].cpu = i;
+            batch->ops[j].isrdmsr = 1;
+            batch->ops[j].err = 0;
+            batch->ops[j].msr = msr;
+            batch->ops[j].msrdata = 0;
+            batch->ops[j].wmask = 0;
 
     }
 #if DEBUG
