@@ -129,15 +129,18 @@ bool msr_write_check(uint32_t address, uint64_t value){
         parse_msr_approved_list();
         msr_list_initialized = true;
     }
-	for( int i=0; i<msr_count; i++ ){
+
+    for( int i=0; i<msr_count; i++ ){
         if( address == msr_list[i].address ){
             if( (msr_list[i].writemask | value ) == msr_list[i].writemask ){
+		    printf("value can be written to msr \n");
                      return true;
             }else{
+		    printf("value cannot be written to msr \n");
                     return false;
             }
         }
-	}
+    }
     return false;
 }
 
@@ -178,6 +181,8 @@ int add_writeops(struct msr_batch_array *batch, __u16 first_cpu, __u16 last_cpu,
 
 #if DEBUG
 int print_op( struct msr_batch_op *op ){
+
+	printf("Hello there \n");
 	printf("cpu: %" PRIu16 "  isrdmsr: %" PRIu16  " err: %" PRId32 "  msraddr: %" PRIx32 "  msrdata: %" PRIu64  "   wmask: %" PRIx64 " \n",
 		(uint16_t)op->cpu,
 		(uint16_t)op->isrdmsr,

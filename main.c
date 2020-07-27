@@ -25,7 +25,6 @@
 #include <sched.h>
 #endif
 #endif
-
 #include <signal.h>
 #include <getopt.h>
 #include <unistd.h>
@@ -1097,13 +1096,49 @@ static void evaluate_environment()
     }
 
 }
+void timer_handler(int signum){
+	printf("%llu %llu");
+}
+
+int setup_timer(){
+	struct msr_batch_array my_batch = {.numops=1 .ops = NULL};
+	struct sigaction sa;
+	struct itimerval timer;
+	int cpu_idx;
+	for(cpu_idx=0; cpu_idx <= 1; cpu_idx++){
+		printf("0xE7 %02d 0xE8 %02d", cpu_idx, cpu_idx);
+	}
+	printf("\n");
+
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = &timer_handler;
+	sigaction(SIGVTALRM, &sa, NULL);
+
+	add_readops(&my_batch, 0, 1, 0xE7);
+	add_readops(&my_batch, 0, 1, 0xe8);
+	run_batch(&my_batch);
+	
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = &timer_handler;
+	sigaction(SIGVTALRM, &sa, NULL);
+
+	timer.it_interval.tv_sec = 0;
+	timer.it_interval.tv_usec = 100000;
+	timer.it_value.tv_sec = 0;
+	timer.it_value.tv_usec = 100000;
+
+	setitimer(ITIMER_VIRTUAL, &timer, NULL);
+	return 0;
+}
+
+
+
+
 
 int main(int argc, char *argv[])
 {
     int i,c;
     unsigned long long iterations=0;
-    struct msr_batch_array batch_start = { .numops=0, .ops=NULL };
-    struct msr_batch_array batch_stop  = { .numops=0, .ops=NULL };
 
     #ifdef CUDA
     gpustruct_t * structpointer=malloc(sizeof(gpustruct_t));
@@ -1138,14 +1173,8 @@ int main(int argc, char *argv[])
         {"load",        required_argument,  0, 'l'},
         {"period",      required_argument,  0, 'p'},
         {0,             0,                  0,  0 }
-    };
-
-    assert( msr_read_check( 0xE7 ) );
-    assert( msr_read_check( 0xE8 ) );
-    add_readops( &batch_start, 0, 1, 0xE7 );
-    add_readops(&batch_start, 0, 1, 0xE8);
-    add_readops(&batch_stop, 0, 1, 0xE7);
-    add_readops(&batch_stop, 0, 1, 0xE8);
+    }; 
+	
     while(1)
     {
         #if (defined(linux) || defined(__linux__)) && defined (AFFINITY)
@@ -1336,7 +1365,8 @@ int main(int argc, char *argv[])
     #ifdef CUDA
     free(structpointer);
     #endif
-
+    add_writeops(&batch_start, 0, 1, 0xe7, 0);
+    add_writeops(&batch_stop, 0, 1, 0xe7, 0);
     return EXIT_SUCCESS;
 }
 
