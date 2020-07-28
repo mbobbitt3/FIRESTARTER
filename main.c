@@ -1096,12 +1096,20 @@ static void evaluate_environment()
     }
 
 }
+
+struct msr_batch_array my_batch = {.numops=0, .ops = NULL};
+struct msr_batch_array my_batch2 = {.numops=0, .ops = NULL};
+
 void timer_handler(int signum){
-	printf("%llu %llu");
+	int i;
+	for(i = 1; i<= my_batch.numops; i++){
+		printf("%llu %llu",
+			my_batch.ops[i].msrdata,
+			my_batch2.ops[i].msrdata);
+	}
 }
 
 int setup_timer(){
-	struct msr_batch_array my_batch = {.numops=1 .ops = NULL};
 	struct sigaction sa;
 	struct itimerval timer;
 	int cpu_idx;
@@ -1115,9 +1123,13 @@ int setup_timer(){
 	sigaction(SIGVTALRM, &sa, NULL);
 
 	add_readops(&my_batch, 0, 1, 0xE7);
-	add_readops(&my_batch, 0, 1, 0xe8);
-	run_batch(&my_batch);
-	
+	add_readops(&my_batch2, 0, 1, 0xe8);
+	for(int i=0; i <= 20000; i++){
+		run_batch(&my_batch);
+		printf("%llu ", my_batch.ops[i].msrdata);
+		run_batch(&my_batch2);
+		printf("%llu \n", my_batch2.ops[i].msrdata);
+	}
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &timer_handler;
 	sigaction(SIGVTALRM, &sa, NULL);
@@ -1331,8 +1343,6 @@ int main(int argc, char *argv[])
 
     /* wait for threads after watchdog has requested termination */
     for(i = 0; i < mdp->num_threads; i++) pthread_join(threads[i], NULL);
-	run_batch(&batch_start);
-    fprintf( stdout, "mperf start:  %" PRIu64 "\n", (uint64_t)(batch_start.ops[0].msrdata) );
 
 
     if (verbose == 2){
@@ -1358,15 +1368,14 @@ int main(int argc, char *argv[])
        printf("\n* this estimate is highly unreliable if --function is used in order to select\n");
        printf("  a function that is not optimized for your architecture, or if FIRESTARTER is\n");
        printf("  executed on an unsupported architecture!\n");
-       run_batch( &batch_stop );
        printf("\n");
     }
 
     #ifdef CUDA
     free(structpointer);
     #endif
-    add_writeops(&batch_start, 0, 1, 0xe7, 0);
-    add_writeops(&batch_stop, 0, 1, 0xe7, 0);
+    add_writeops(&my_batch, 0, 1, 0xe7, 0);
+    add_writeops(&my_batch2, 0, 1, 0xe8, 0);
     return EXIT_SUCCESS;
 }
 
