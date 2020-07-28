@@ -1103,9 +1103,10 @@ struct msr_batch_array my_batch2 = {.numops=0, .ops = NULL};
 void timer_handler(int signum){
 	int i;
 	for(i = 1; i<= my_batch.numops; i++){
-		printf("%llu %llu",
+		printf("QQQ %llu %llu \n",
 			my_batch.ops[i].msrdata,
 			my_batch2.ops[i].msrdata);
+		i++;
 	}
 }
 
@@ -1124,12 +1125,9 @@ int setup_timer(){
 
 	add_readops(&my_batch, 0, 1, 0xE7);
 	add_readops(&my_batch2, 0, 1, 0xe8);
-	for(int i=0; i <= 20000; i++){
-		run_batch(&my_batch);
-		printf("%llu ", my_batch.ops[i].msrdata);
-		run_batch(&my_batch2);
-		printf("%llu \n", my_batch2.ops[i].msrdata);
-	}
+	run_batch(&my_batch);
+	run_batch(&my_batch2);
+//	printf("QQQ %llu %llu", my_batch.ops[i].msrdata, my_batch2.ops[i].msrdata
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &timer_handler;
 	sigaction(SIGVTALRM, &sa, NULL);
@@ -1161,7 +1159,7 @@ int main(int argc, char *argv[])
     structpointer->loadingdone=0;
     structpointer->loadvar=&LOADVAR;
     #endif 
-
+	setup_timer();
     static struct option long_options[] = {
         {"copyright",   no_argument,        0, 'c'},
         {"help",        no_argument,        0, 'h'},
