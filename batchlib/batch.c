@@ -1,4 +1,5 @@
 #include "msr_safe.h"
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -70,7 +71,7 @@ void parse_msr_approved_list(){
 	FILE *fp;
 	int rc;
 	char buf[MSR_BUF_SIZE];
-	fp = fopen("/dev/cpu/msr_approved_list", "r");
+	fp = fopen("my_approved_list", "r");
 
 	if(fp == NULL){
         printf("File could not be opened check that you have read permissions and that the file exists");
@@ -158,11 +159,10 @@ int add_writeops(struct msr_batch_array *batch, __u16 first_cpu, __u16 last_cpu,
 	for(i = first_cpu; i <= last_cpu; i++){
 
 		batch->ops[i].cpu = i;
-        	batch->ops[i].isrdmsr = 1;
+        	batch->ops[i].isrdmsr = 0;
         	batch->ops[i].err = 0;
         	batch->ops[i].msr = msr;
-        	batch->ops[i].msrdata = 0;
-        	batch->ops[i].wmask = writemask;
+        	batch->ops[i].msrdata = writemask;
 
     		printf("MSR Add: %" PRIx32 " MSR value: %llu"  " CPU core: %" PRIu16 "\n",
     			batch->ops[i].msr,
@@ -242,6 +242,7 @@ int run_batch( struct msr_batch_array *batch ){
 		fprintf(stderr, "%s::%d rc=%d\n", __FILE__, __LINE__, rc);
         exit(-1);
     }
+	close(fd);
 	return 0;
 }
 

@@ -12,7 +12,7 @@ int main(){
 
     	add_readop( &my_batch, 0x611);
 	parse_msr_approved_list();
-   	msr_write_check(0xe7,0); 
+   	msr_write_check(0xe7, 0); 
 	rc = run_batch(&my_batch);
 	
 	printf("%d", rc);
