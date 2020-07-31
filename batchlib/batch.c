@@ -71,7 +71,7 @@ void parse_msr_approved_list(){
 	FILE *fp;
 	int rc;
 	char buf[MSR_BUF_SIZE];
-	fp = fopen("my_approved_list", "r");
+	fp = fopen("/dev/cpu/msr_approved_list", "r");
 
 	if(fp == NULL){
         printf("File could not be opened check that you have read permissions and that the file exists");
@@ -238,7 +238,7 @@ int run_batch( struct msr_batch_array *batch ){
 
 	if(rc < 0){
 		rc = rc * -1;
-		printf("ioctl failed, check that the MSR exists, and is read/writable \n");
+		perror("ioctl failed, check that the MSR exists, and is read/writable \n");
 		fprintf(stderr, "%s::%d rc=%d\n", __FILE__, __LINE__, rc);
         exit(-1);
     }
