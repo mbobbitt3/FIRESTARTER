@@ -133,7 +133,7 @@ bool msr_write_check(uint32_t address, uint64_t value){
 
     for( int i=0; i<msr_count; i++ ){
         if( address == msr_list[i].address ){
-            if( (msr_list[i].writemask && (msr_list[i].writemask | value ) == msr_list[i].writemask)){
+            if( (msr_list[i].writemask && ((msr_list[i].writemask | value ) == msr_list[i].writemask)){
 		    printf("value can be written to msr \n");
                      return true;
             }else{

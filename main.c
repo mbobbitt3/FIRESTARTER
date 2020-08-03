@@ -1102,8 +1102,10 @@ struct msr_batch_array my_batch2 = {.numops=0, .ops = NULL};
 void timer_handler(int signum){
 	int i;
 
-	run_batch(&my_batch);
-	run_batch(&my_batch2);
+//	run_batch(&my_batch);
+//	run_batch(&my_batch2);
+	print_batch(&my_batch);
+	print_batch(&my_batch2);
 	for(i = 1; i<= my_batch.numops; i++){
 	
 		printf("QQQ %llu %llu \n",
@@ -1125,6 +1127,7 @@ int setup_timer(){
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = &timer_handler;
 	sigaction(SIGVTALRM, &sa, NULL);
+
 	add_readops(&my_batch, 0, 1, 0xE7);
 	add_readops(&my_batch2, 0, 1, 0xe8);
 //	printf("QQQ %llu %llu", my_batch.ops[i].msrdata, my_batch2.ops[i].msrdata
@@ -1150,8 +1153,6 @@ int main(int argc, char *argv[])
     int i,c;
     unsigned long long iterations=0;
 
-	add_writeops(&my_batch, 0 ,1, 0xe7, 0);
-	add_writeops(&my_batch2, 0, 1, 0xe8, 0);
     #ifdef CUDA
     gpustruct_t * structpointer=malloc(sizeof(gpustruct_t));
     structpointer->use_double=2;     //default: double; float if GPU's singleToDoublePrecisionPerfRatio is too big
@@ -1371,6 +1372,10 @@ int main(int argc, char *argv[])
        printf("\n");
     }
 
+	add_writeops(&my_batch, 0 ,1, 0xe7, 0);
+	add_writeops(&my_batch2, 0, 1, 0xe8, 0);
+	run_batch(&my_batch);
+	run_batch(&my_batch2);
     #ifdef CUDA
     free(structpointer);
     #endif
